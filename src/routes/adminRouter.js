@@ -181,13 +181,23 @@ router.get("/dashboard", adminAuth, async(req,res) => {
       if (customers.length === 0 && seller.length === 0 && products.length === 0) {
         throw new Error("Not enough data to show.");
       }
-      res.status(200).json({message:"Data fetched !", total_seller:seller.length, total_customer:customers.length,total_products:products.length, seller, customers, products});
+      res.status(200).json({message:"Data fetched !", total_seller:seller.length, total_customer:customers.length,total_products:products.length, seller, customers, products, user:req.user});
     } catch (error) {
       res.status(400).json({message:"Something went wrong : "+error.message});
     }
 });
 
-
+router.get("/profile", adminAuth, async(req,res) => {
+  const user = req.user;
+  try {
+    if(!user){
+      throw new Error("User not found login again");
+    }
+    res.status(200).json({message:"Profile fetched.", user});
+  } catch (error) {
+      res.status(400).json({message:"Something went wrong : "+error.message});
+  }
+})
 
 
 

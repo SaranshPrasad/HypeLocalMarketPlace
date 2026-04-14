@@ -319,5 +319,15 @@ router.delete("/cart/remove/:productId", userAuth, async (req, res) => {
   }
 });
 
-
+router.get("/profile", adminAuth, async(req,res) => {
+  const user = req.user;
+  try {
+    if(!user){
+      throw new Error("User not found login again");
+    }
+    res.status(200).json({message:"Profile fetched.", user});
+  } catch (error) {
+      res.status(400).json({message:"Something went wrong : "+error.message});
+  }
+})
 module.exports = router;

@@ -180,7 +180,7 @@ router.get("/dashboard", sellerAuth, async (req, res) => {
 
     res.status(200).json({
       message: "Data fetched!",
-      dashboardDatas,
+      dashboardDatas,user:req.user
     });
   } catch (error) {
     res.status(400).json({
@@ -189,5 +189,19 @@ router.get("/dashboard", sellerAuth, async (req, res) => {
   }
 });
 
+
+router.get("/profile", sellerAuth, async(req,res) => {
+  const user = req.user;
+  try {
+    if(!user){
+    throw new Error("User not found login Again..");
+  }
+  res.status(200).json({message:"Profile Fetched", user});
+  } catch (error) {
+    res.status(400).json({
+      message: "Something went wrong : " + error.message,
+    });
+  }
+})
 
 module.exports = router;
