@@ -319,7 +319,7 @@ router.delete("/cart/remove/:productId", userAuth, async (req, res) => {
   }
 });
 
-router.get("/profile", adminAuth, async(req,res) => {
+router.get("/profile", userAuth, async(req,res) => {
   const user = req.user;
   try {
     if(!user){
