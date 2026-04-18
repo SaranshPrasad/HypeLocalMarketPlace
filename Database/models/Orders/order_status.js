@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 const orderStatusScheme = mongoose.Schema({
     order_id: {
         type: mongoose.Schema.Types.ObjectId,
-        required:true
+        required:true,
+        ref:"Order"
     },
     status:{
         type:String,
@@ -11,7 +12,7 @@ const orderStatusScheme = mongoose.Schema({
     },
     changed_by_role:{
         type:String,
-        enum: ["admin", "seller", "delivery"]
+        enum: ["admin", "seller", "delivery","customer"]
     },
     changed_by_id:{
         type:mongoose.Schema.Types.ObjectId,

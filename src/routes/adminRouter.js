@@ -110,7 +110,7 @@ router.post("/approve/seller", adminAuth, async (req, res) => {
       throw new Error("Seller is already verified");
     }
     console.log(seller.phoneNumber);
-      const cleanName = seller.name.slice(0, 3).toLowerCase();
+      const cleanName = seller.owner_name.slice(0, 3).toLowerCase();
       const lastDigits = seller.phoneNumber.toString().slice(-4);
       const random = Math.floor(100 + Math.random() * 900);
 
@@ -197,7 +197,7 @@ router.get("/profile", adminAuth, async(req,res) => {
   } catch (error) {
       res.status(400).json({message:"Something went wrong : "+error.message});
   }
-})
+});
 
 
 

@@ -8,11 +8,12 @@ const SellerSession = require("../../Database/models/Seller/sellerSession");
 const { sellerAuth } = require("../middlewares/Seller.js/auth");
 const Order = require("../../Database/models/Orders/order");
 const Product = require("../../Database/models/Product/product");
+const OrderStatus = require("../../Database/models/Orders/order_status");
 router.use(express.json());
 router.use(cookieParser());
 
 router.post("/sellerForm", async (req, res) => {
-  const { owner_name, phoneNumber, email } = req.body;
+  const {bussiness_name,addhaar_no,address_details, owner_name, phoneNumber, email } = req.body;
   try {
     const existingSeller = await Seller.findOne({ phoneNumber: phoneNumber });
     if (existingSeller) {
@@ -21,9 +22,12 @@ router.post("/sellerForm", async (req, res) => {
       );
     }
     const newSeller = new Seller({
-      owner_name,
-      phoneNumber,
-      email,
+      owner_name:owner_name,
+      phoneNumber:phoneNumber,
+      email:email,
+      address_details:address_details,
+      bussiness_name:bussiness_name,
+      addhaar_no:addhaar_no
     });
     const saveSeller = await newSeller.save();
     res
@@ -85,23 +89,22 @@ router.post("/auth/login", async (req, res) => {
 });
 
 router.post("/auth/logout", sellerAuth , async (req, res) => {
-    const {name}  = req.user;
+    const {owner_name}  = req.user;
     const token = req.cookies.token;
     await SellerSession.deleteOne({ token });
       res.cookie("token", null, {
         expires: new Date(Date.now()),
       });
-      res.status(200).json({message:`Seller ${name} Logout Successfully !`})
+      res.status(200).json({message:`Seller ${owner_name} Logout Successfully !`})
 });
 
 // Date - 07-04-2026
 router.patch("/update/seller_details", sellerAuth, async (req, res) => {
-  const {bussiness_name, addhaar_no,address_details} = req.body;
+  const {bussiness_name, address_details} = req.body;
   const _id = req.user._id;
   try {
     const seller = await Seller.findByIdAndUpdate(_id, {
       bussiness_name:bussiness_name,
-      addhaar_no:addhaar_no,
       address_details:address_details
     }, {returnDocument: 'after'});
     if(!seller){
@@ -118,7 +121,7 @@ router.patch("/update/seller_details", sellerAuth, async (req, res) => {
 router.get("/order/details", sellerAuth, async(req,res) =>{
   const {_id} = req.user;
   try {
-    const orders = await Order.find({sellerId:_id});
+    const orders = await Order.find({seller_id:_id});
     if(orders.length === 0){
       return res.status(200).json({message:"No orders till now.", orders});
     }
@@ -196,12 +199,81 @@ router.get("/profile", sellerAuth, async(req,res) => {
     if(!user){
     throw new Error("User not found login Again..");
   }
-  res.status(200).json({message:"Profile Fetched", user});
+  const profileData = {
+    username:user.owner_name,
+    bussiness_name:user.bussiness_name,
+    address_details:user.address_details,
+    phoneNumber:user.phoneNumber,
+    email:user.email
+  }
+  res.status(200).json({message:"Profile Fetched", profileData});
   } catch (error) {
     res.status(400).json({
       message: "Something went wrong : " + error.message,
     });
   }
-})
+});
+
+
+router.patch("/order/accept/:id", sellerAuth, async(req,res)=>{
+    const {id} = req.params;
+    try {
+      const orders = await Order.findById(id);
+      if(!orders ){
+        throw new Error("Something went wrong order details not found.");
+        
+      }
+      if(orders.status === "rejected" || orders.seller_rejected ){
+        throw new Error("Order already rejected.");
+        
+      }
+      if(orders.status === "accepted" || orders.seller_accepted){
+        throw new Error("Order already accepted cant be accept again.");
+        
+      }
+      orders.status = "accepted";
+      orders.changed_by_id = req.user._id;
+      orders.changed_by_role = "seller";
+      orders.seller_accepted = true;
+      orders.seller_accepted_at = new Date.now();
+      await orders.save();
+      
+      res.status(200).json({message:"Order Accepted.", orders});
+    } catch (error) {
+      res.status(400).json({
+      message: "Something went wrong : " + error.message,
+    });
+    }
+});
+
+router.patch("/order/reject/:id", sellerAuth, async(req,res)=>{
+    const {id} = req.params;
+    try {
+      const orders = await Order.findById(id);
+      if(!orders ){
+        throw new Error("Something went wrong order details not found.");
+        
+      }
+      if(orders.status === "rejected" || orders.seller_rejected ){
+        throw new Error("Order already rejected.");
+        
+      }
+      if(orders.status === "accepted" || orders.seller_accepted){
+        throw new Error("Order already accepted cant be reject now.");
+        
+      }
+      orders.status = "rejected";
+      orders.changed_by_id = req.user._id;
+      orders.changed_by_role = "seller";
+      orders.seller_rejected = true;
+      await orders.save();
+      
+      res.status(200).json({message:"Order Rejected.", orders});
+    } catch (error) {
+      res.status(400).json({
+      message: "Something went wrong : " + error.message,
+    });
+    }
+});
 
 module.exports = router;
