@@ -80,7 +80,7 @@ router.post("/auth/login", async (req, res) => {
    
         });
     const sessions = await newSession.save();
-    res.status(200).json({message:"Seller Logged In successfully", existingSeller, sessions});
+    res.status(200).json({message:"Seller Logged In successfully", existingSeller, sessions,token:token});
   } catch (error) {
     res
       .status(400)
