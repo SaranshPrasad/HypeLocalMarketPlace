@@ -1,12 +1,13 @@
 const mongoose = require("mongoose");
+require("dotenv").config();
+
 const connectDB = async () => {
   try {
-    const db = await mongoose.connect(
-      `mongodb+srv://saranshprasad08:LZ36unwnOiYttSRY@alumini.hyktp.mongodb.net/?appName=Alumini`,
-    );
-    console.log("Database connected!");
-  } catch (error) {
-    console.log(error.message);
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("MongoDB Connected");
+  } catch (err) {
+    console.log("MongoDB Error:", err.message);
+    process.exit(1);
   }
 };
 
