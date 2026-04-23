@@ -12,6 +12,7 @@ app.use("/customer", customerRouter);
 app.use("/admin", adminRouter);
 app.use("/seller", sellerRouter);
 app.use("/products", productRouter);
+
 app.listen(4000, (req, res) => {
   if (connectDB()) {
     console.log("Server is live at port 4000");

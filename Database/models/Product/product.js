@@ -42,10 +42,12 @@ const productSchema = mongoose.Schema({
         type:Number,
         required:true
     },
-    images:{
-        type:[String],
-        required:true
-    },
+    images: [
+  {
+    url: { type: String },
+    public_id: { type: String }
+  }
+],
     is_active:{
         type:Boolean,
         required:true

@@ -40,7 +40,7 @@ router.post("/login", async (req, res) => {
       ip: req.ip,
     });
     const saveSessions = await sessions.save();
-    res.status(200).json({ message: "Login Successfull", admin, saveSessions });
+    res.status(200).json({ message: "Login Successfull", admin, saveSessions, token:token });
   } catch (error) {
     res
       .status(400)

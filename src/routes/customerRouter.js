@@ -2,7 +2,6 @@ const express = require("express");
 const { userAuth } = require("../middlewares/Customer/auth");
 const Customer = require("../../Database/models/Customer/customer");
 const router = express.Router();
-router.use(express.json());
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
@@ -10,11 +9,11 @@ const Session = require("../../Database/models/Customer/session");
 const OTP = require("../../Database/models/Customer/otp");
 const Cart = require("../../Database/models/Orders/cart");
 const Product = require("../../Database/models/Product/product");
-// const generateOrderNumber = require("../utils/utils");
 const OrderStatus = require("../../Database/models/Orders/order_status");
 const Order = require("../../Database/models/Orders/order");
 const { generateOrderNumber } = require("../utils/utils");
 router.use(cookieParser());
+router.use(express.json());
 router.get("/customer", (req, res) => {
     res.send("Hellow From Customer Router");
 });
@@ -84,9 +83,6 @@ router.post("/auth/signup", async (req,res) => {
         res.status(400).json({message:"Something went wrong "+error.message});
     }
 });
-
-
-
 
 
 // Phone Number + OTP VERSION 
