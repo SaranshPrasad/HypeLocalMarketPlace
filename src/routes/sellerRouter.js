@@ -65,7 +65,7 @@ router.post("/auth/login", async (req, res) => {
     const token = await jwt.sign(
       { _id: existingSeller._id },
       "HYPERLOCAL2026",
-      { expiresIn: "1d" },
+      { expiresIn: "7d" },
     );
     res.cookie("token", token, {
       httpOnly: true,
@@ -235,7 +235,7 @@ router.patch("/order/accept/:id", sellerAuth, async(req,res)=>{
       orders.changed_by_id = req.user._id;
       orders.changed_by_role = "seller";
       orders.seller_accepted = true;
-      orders.seller_accepted_at = new Date.now();
+      orders.seller_accepted_at = new Date();
       await orders.save();
       
       res.status(200).json({message:"Order Accepted.", orders});

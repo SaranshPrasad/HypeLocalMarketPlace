@@ -4,7 +4,7 @@ const Session = require("../../../Database/models/Customer/session");
 require("dotenv").config;
 const userAuth = async (req, res, next) => {
   // get token from cookie which is saved when login or signup
-  const { token } = req.cookies;
+  const token = req.headers.authorization?.split(" ")[1];
   try {
     // If token is not present
     if (!token) {
