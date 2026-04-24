@@ -88,14 +88,32 @@ router.post("/auth/login", async (req, res) => {
   }
 });
 
-router.post("/auth/logout", sellerAuth , async (req, res) => {
-    const {owner_name}  = req.user;
-    const token = req.cookies.token;
-    await SellerSession.deleteOne({ token });
-      res.cookie("token", null, {
-        expires: new Date(Date.now()),
-      });
-      res.status(200).json({message:`Seller ${owner_name} Logout Successfully !`})
+router.post("/auth/logout", sellerAuth, async (req, res) => {
+  try {
+    //  token from header OR cookie
+    const token =
+      req.cookies.token ||
+      req.headers.authorization?.split(" ")[1];
+
+    const { owner_name } = req.user;
+
+    if (token) {
+      await SellerSession.deleteOne({ token });
+    }
+
+    // cookie clear (optional)
+    res.cookie("token", null, {
+      expires: new Date(Date.now()),
+    });
+
+    res.status(200).json({
+      message: `Seller ${owner_name} Logout Successfully !`,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: "Something went wrong : " + error.message,
+    });
+  }
 });
 
 // Date - 07-04-2026
