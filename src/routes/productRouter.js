@@ -173,61 +173,111 @@ router.get("/get/all", async(req,res) => {
     }
 });
 
-router.post("/add", sellerAuth, upload.array("images", 4), async(req,res) => {
-    const {
+router.post(
+  "/add",
+  sellerAuth,
+  upload.array("images", 4),
+  async (req, res) => {
+    try {
+      let {
         product_name,
         product_id,
         product_desc,
-        seller_id,
         added_by,
         product_price,
         product_discounted_price,
         product_category,
         stock_quantity,
-        is_active
-    } = req.body;
+        is_active,
+      } = req.body;
 
-    try {
-        const product = await Product.findOne({ product_id });
+      // 🔥 SELLER ID FROM TOKEN (IMPORTANT)
+      const seller_id = req.user?._id;
 
-        if(product){
-            throw new Error("Product already exists try updating product stock quantity");
-        }
-        let images = [];
-        if(req.files && req.files.length > 0){
-            const uploads = req.files.map(file =>
-                uploadToCloudinary(file.buffer)
-            );
-            images = await Promise.all(uploads);
-        }
+      /* ---------------- VALIDATION ---------------- */
 
-        const newProduct = new Product({
-            product_name,
-            product_id,
-            product_desc,
-            seller_id,
-            added_by,
-            product_price,
-            product_discounted_price,
-            product_category,
-            stock_quantity,
-            is_active,
-            images
+      if (
+        !product_name ||
+        !product_id ||
+        !product_desc ||
+        !product_category
+      ) {
+        return res.status(400).json({
+          message: "All required fields must be filled",
         });
+      }
 
-        await newProduct.save();
+      /* ---------------- SAFE NUMBER CONVERSION ---------------- */
 
-        res.status(200).json({
-            message:"Product added.",
-            newProduct
+      const safeNumber = (value) => {
+        const num = Number(value);
+        return isNaN(num) ? 0 : num;
+      };
+
+      product_price = safeNumber(product_price);
+      product_discounted_price = safeNumber(product_discounted_price);
+      stock_quantity = safeNumber(stock_quantity);
+
+      if (product_price <= 0) {
+        return res.status(400).json({
+          message: "Product price must be greater than 0",
         });
+      }
+
+      /* ---------------- CHECK EXISTING PRODUCT ---------------- */
+
+      const existingProduct = await Product.findOne({ product_id });
+
+      if (existingProduct) {
+        return res.status(400).json({
+          message:
+            "Product already exists. Try updating stock instead.",
+        });
+      }
+
+      /* ---------------- IMAGE UPLOAD ---------------- */
+
+      let images = [];
+
+      if (req.files && req.files.length > 0) {
+        const uploads = req.files.map((file) =>
+          uploadToCloudinary(file.buffer)
+        );
+        images = await Promise.all(uploads);
+      }
+
+      /* ---------------- CREATE PRODUCT ---------------- */
+
+      const newProduct = new Product({
+        product_name,
+        product_id,
+        product_desc,
+        seller_id,
+        added_by: added_by || "seller",
+        product_price,
+        product_discounted_price,
+        product_category,
+        stock_quantity,
+        is_active: is_active ?? true,
+        images,
+      });
+
+      await newProduct.save();
+
+      return res.status(200).json({
+        message: "Product added successfully",
+        newProduct,
+      });
 
     } catch (error) {
-        res.status(400).json({
-            message:"Something went wrong. " + error.message
-        });
+      console.log("ADD PRODUCT ERROR:", error);
+
+      return res.status(500).json({
+        message: error.message || "Internal Server Error",
+      });
     }
-});
+  }
+);
 
 
 router.patch("/update/:id", sellerAuth, upload.array("images", 4), async (req,res) => {
