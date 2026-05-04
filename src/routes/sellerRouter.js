@@ -118,6 +118,24 @@ router.patch("/update/seller_details", sellerAuth, async (req, res) => {
   } 
 } );
 
+router.patch("/reset-password", sellerAuth, async(req,res) => {
+  const {password, confirmPassword }= req.body;
+  const user = req.user;
+
+  try {
+    if(password !== confirmPassword){
+      throw new Error("Password doesnt match.");
+      
+    }
+    const hashedPassword =  await bcrypt.hash(password, 10);
+    const updateUserPassword = await Seller.findByIdAndUpdate(user._id, {password: hashedPassword}, {returnDocument:'after'});
+    res.status(200).json({message:"Password updated sucessfully", updateUserPassword});
+  } catch (error) {
+      res.status(400).json({message:"Something went wrong : "+error.message});
+    
+  }
+});
+
 router.get("/order/details", sellerAuth, async(req,res) =>{
   const {_id} = req.user;
   try {
